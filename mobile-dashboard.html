@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>My System Dashboard</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+
+    <link rel="icon" type="image/png" href="2.png">
+    <link rel="apple-touch-icon" href="2.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0a60ff', // Samsung Blue accent
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    },
+                    animation: {
+                        blob: "blob 7s infinite",
+                    },
+                    keyframes: {
+                        blob: {
+                            "0%": { transform: "translate(0px, 0px) scale(1)" },
+                            "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+                            "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+                            "100%": { transform: "translate(0px, 0px) scale(1)" }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body {
+            background-color: #f2f3f7;
+            color: #1a1a1a;
+            padding-bottom: env(safe-area-inset-bottom);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            overscroll-behavior-y: none;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .dark body {
+            background-color: #121212;
+            color: #eeeeee;
+        }
+
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e1e3e8;
+            border-radius: 28px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .dark .glass-panel {
+            background: #1e1e24;
+            border: 1px solid #2d2d34;
+            box-shadow: none;
+        }
+
+        .glass-nav {
+            background: #ffffff;
+            border-top: 1px solid #e1e3e8;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .dark .glass-nav {
+            background: #1c1c1e;
+            border-top: 1px solid #2d2d34;
+            box-shadow: none;
+        }
+
+        .glass-btn {
+            background: #ffffff;
+            border: 1px solid #e1e3e8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .dark .glass-btn {
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            box-shadow: none;
+        }
+
+        .balance-gradient {
+            background: linear-gradient(135deg, #0a60ff, #004ecc);
+            color: white;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(10, 132, 255, 0.2);
+            border-radius: 50%;
+            border-top: 3px solid #0A84FF;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .view-section {
+            display: none;
+            opacity: 0;
+            transform: scale(0.97) translateY(10px);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .view-section.active {
+            display: block;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+            color: #6b7280;
+        }
+
+        .dark .nav-item {
+            color: #9ca3af;
+        }
+
+        .nav-item.active {
+            color: #0a60ff !important;
+            transform: scale(1.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #pull-indicator {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: transform 0.2s ease;
+            pointer-events: none;
+        }
+
+        .pull-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(10, 132, 255, 0.2);
+            border-top-color: #0A84FF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col pt-[env(safe-area-inset-top)] overscroll-none">
+
+    <div id="pull-indicator">
+        <div class="pull-spinner"></div>
+    </div>
+
+    <div id="loader"
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/50 dark:bg-black/80 backdrop-blur-xl transition-opacity duration-300">
+        <div class="spinner mb-4"></div>
+        <p class="text-[15px] text-gray-700 dark:text-gray-300 font-medium">Syncing UI...</p>
+    </div>
+
+    <main class="flex-1 overflow-y-auto px-5 pt-6 pb-28 relative z-10 w-full max-w-md mx-auto">
+
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-12 h-12 rounded-full overflow-hidden border-[1px] border-white/50 dark:border-gray-700 shadow-md">
+                    <img src="Logo.jpg" alt="Logo" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 class="text-[22px] font-extrabold tracking-tight text-gray-900 dark:text-white">FinTrack</h1>
+                    <p id="ui-last-updated" class="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Live Sync
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="enable-notif-btn"
+                    class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-800 dark:text-gray-200 active:scale-95 transition-transform">
+                    <i class="ph ph-bell text-[20px]"></i>
+                </button>
+                <button id="theme-toggle"
+                    class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-800 dark:text-gray-200 active:scale-95 transition-transform">
+                    <i class="ph ph-moon text-[20px] dark:hidden block"></i>
+                    <i class="ph ph-sun text-[20px] hidden dark:block text-yellow-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <section id="view-dashboard" class="view-section active">
+            <div class="mb-5 mt-2">
+                <h2 class="text-3xl font-extrabold text-gray-950 dark:text-white tracking-tight">Home</h2>
+            </div>
+
+            <div class="glass-panel balance-gradient p-6 mb-5 relative overflow-hidden fade-in">
+                <i class="ph ph-wallet absolute right-[-15px] bottom-[-25px] text-[160px] opacity-[0.15]"></i>
+                <p
+                    class="text-white/90 text-[13px] font-semibold mb-1 uppercase tracking-widest leading-none drop-shadow-sm">
+                    Net Balance</p>
+                <div class="flex items-end gap-1 mb-1 relative z-10">
+                    <span class="text-white text-xl font-medium mb-1 drop-shadow-sm">Rs.</span>
+                    <h2 id="ui-net-balance" class="text-5xl font-extrabold tracking-tight drop-shadow-md">0.00</h2>
+                </div>
+                <div class="mt-8 flex justify-between items-center relative z-10 text-white/80 text-xs font-medium">
+                    <span class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md">Ramika</span>
+                    <span class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10"><i
+                            class="ph ph-shield-check mr-1"></i>Secure</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6 fade-in delay-100">
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="w-10 h-10 rounded-[14px] bg-[#30D158]/20 flex items-center justify-center mb-3">
+                        <i class="ph ph-trend-up text-[#30D158] text-xl font-bold"></i>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                        Total Income</p>
+                    <h3 id="ui-total-income"
+                        class="text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-none">Rs. 0.00
+                    </h3>
+                </div>
+
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="w-10 h-10 rounded-[14px] bg-[#FF453A]/20 flex items-center justify-center mb-3">
+                        <i class="ph ph-trend-down text-[#FF453A] text-xl font-bold"></i>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                        Total Expense</p>
+                    <h3 id="ui-total-expense"
+                        class="text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-none">Rs. 0.00
+                    </h3>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 mb-8 fade-in delay-200">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-gray-900 dark:text-white font-bold text-lg">Monthly Overview</h3>
+                    <input type="month" id="dashboard-month-filter"
+                        class="bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white font-medium px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/20 text-xs outline-none shadow-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">Income</span>
+                        <span id="ui-monthly-income" class="text-[17px] font-bold text-[#30D158]">Rs. 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">Expense</span>
+                        <span id="ui-monthly-expense" class="text-[17px] font-bold text-[#FF453A]">Rs. 0.00</span>
+                    </div>
+                    <div class="pt-3 border-t border-black/5 dark:border-white/10 flex justify-between items-center">
+                        <span class="text-[15px] text-gray-900 dark:text-white font-bold">Monthly Balance</span>
+                        <span id="ui-monthly-balance" class="text-xl font-extrabold text-blue-500">Rs. 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <p
+                class="text-center text-[10px] text-gray-400 dark:text-gray-600 font-medium uppercase tracking-widest mt-10 fade-in delay-200">
+                &copy; <span id="year"></span> Developed by Ramika</p>
+        </section>
+
+        <section id="view-history" class="view-section">
+            <div class="mb-5 mt-2">
+                <h2 class="text-3xl font-extrabold text-gray-950 dark:text-white tracking-tight">History</h2>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white">Transaction History</h2>
+                <input type="month" id="history-month-filter"
+                    class="w-[130px] bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white font-medium px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/20 text-sm outline-none shadow-sm focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="glass-panel overflow-hidden p-1">
+                <ul id="history-tx-list" class="divide-y divide-black/5 dark:divide-white/10 p-2">
+                </ul>
+            </div>
+        </section>
+
+        <section id="view-charts" class="view-section">
+            <div class="mb-5 mt-2">
+                <h2 class="text-3xl font-extrabold text-gray-950 dark:text-white tracking-tight">Analytics</h2>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-[24px] font-bold tracking-tight text-gray-900 dark:text-white">Analytics</h2>
+                <input type="month" id="chart-month-filter"
+                    class="w-[130px] bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white font-medium px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/20 text-sm outline-none shadow-sm focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="glass-panel overflow-hidden p-4 relative" style="height: 350px;">
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <nav
+        class="glass-nav fixed bottom-0 left-0 right-0 z-40 w-full pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] px-2 block">
+        <div class="flex justify-around items-center max-w-sm mx-auto">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard"
+                class="nav-item active flex flex-col items-center gap-1 w-20">
+                <i class="ph ph-house text-[24px]"></i>
+                <span class="text-[10px] font-semibold">Home</span>
+            </button>
+            <button onclick="switchTab('history')" id="tab-history"
+                class="nav-item flex flex-col items-center gap-1 w-20">
+                <i class="ph ph-arrows-left-right text-[24px]"></i>
+                <span class="text-[10px] font-semibold">History</span>
+            </button>
+            <button onclick="switchTab('charts')" id="tab-charts"
+                class="nav-item flex flex-col items-center gap-1 w-20">
+                <i class="ph ph-chart-line-up text-[24px]"></i>
+                <span class="text-[10px] font-semibold">Analytics</span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="notif-modal"
+        class="fixed inset-0 z-[100] bg-black/60 dark:bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white dark:bg-[#0a0f1c] rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-400 ease-out flex flex-col"
+            id="notif-modal-content">
+            <div class="w-full flex justify-center py-3" id="notif-close-handle">
+                <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+            </div>
+            <div class="px-6 pb-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="ph ph-bell-ringing text-blue-500"></i> Notifications
+                </h2>
+                <button id="clear-notifs-btn"
+                    class="text-xs bg-red-50 text-red-500 dark:bg-red-500/10 font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">Clear
+                    All</button>
+            </div>
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 custom-scrollbar min-h-[300px]" id="notif-list">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NOTIF_CACHE_KEY = 'fintrack_saved_notifs';
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+        }
+
+        const renderNotifs = () => {
+            const list = document.getElementById('notif-list');
+            if (!list) return;
+            const notifs = JSON.parse(localStorage.getItem(NOTIF_CACHE_KEY) || '[]');
+            if (notifs.length === 0) {
+                list.innerHTML = `<div class="py-10 text-center text-gray-400 dark:text-gray-500 flex flex-col items-center"><i class="ph ph-bell-slash text-4xl mb-2 opacity-30"></i><p class="text-[13px] font-medium">No notifications yet.</p></div>`;
+                return;
+            }
+
+            list.innerHTML = notifs.map(n => {
+                const timeStr = new Date(n.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateStr = new Date(n.date).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                const isCredit = n.title.includes('CREDIT') || n.title.includes('INCOME');
+
+                let icon = isCredit ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
+                let color = isCredit ? 'text-[#30D158]' : 'text-[#FF453A]';
+                let bg = isCredit ? 'bg-[#30D158]/20' : 'bg-[#FF453A]/20';
+
+                return `
+                <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 p-3.5 rounded-2xl flex gap-3 relative overflow-hidden">
+                    <div class="w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0">
+                        <i class="ph ${icon} ${color} text-xl font-bold"></i>
+                    </div>
+                    <div class="flex-1 min-w-0 pr-12">
+                        <h4 class="font-bold text-[14px] text-gray-900 dark:text-white leading-tight mb-0.5 truncate">${n.title}</h4>
+                        <p class="text-[12px] font-medium text-gray-500 dark:text-gray-400 leading-snug whitespace-pre-line">${n.body}</p>
+                    </div>
+                    <div class="absolute top-3.5 right-3.5 text-[10px] font-bold text-gray-400 text-right">${dateStr}<br>${timeStr}</div>
+                </div>`;
+            }).join('');
+        };
+
+        const saveNotification = (title, body) => {
+            const notifs = JSON.parse(localStorage.getItem(NOTIF_CACHE_KEY) || '[]');
+            notifs.unshift({ title, body, date: new Date().toISOString(), id: Date.now() });
+            if (notifs.length > 50) notifs.pop();
+            localStorage.setItem(NOTIF_CACHE_KEY, JSON.stringify(notifs));
+            renderNotifs();
+        };
+
+        window.sendMobileNotification = (title, body) => {
+            saveNotification(title, body);
+            if ("Notification" in window && Notification.permission === "granted") {
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, { body: body, icon: 'Logo.jpg', vibrate: [200, 100, 200] });
+                    }).catch(() => { new Notification(title, { body: body, icon: 'Logo.jpg' }); });
+                } else {
+                    new Notification(title, { body: body, icon: 'Logo.jpg' });
+                }
+            }
+        };
+
+        const notifModal = document.getElementById('notif-modal');
+        const notifModalContent = document.getElementById('notif-modal-content');
+
+        const closeNotifModal = () => {
+            notifModalContent.style.transform = 'translateY(100%)';
+            notifModal.style.opacity = '0';
+            setTimeout(() => notifModal.style.pointerEvents = 'none', 300);
+        };
+
+        document.getElementById('enable-notif-btn').addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(10);
+            renderNotifs();
+            notifModal.style.pointerEvents = 'auto';
+            notifModal.style.opacity = '1';
+            setTimeout(() => notifModalContent.style.transform = 'translateY(0)', 10);
+        });
+
+        document.getElementById('notif-close-handle').addEventListener('click', closeNotifModal);
+        notifModal.addEventListener('click', (e) => { if (e.target === notifModal) closeNotifModal(); });
+
+        document.getElementById('clear-notifs-btn').addEventListener('click', () => {
+            if (confirm('Clear all notification history?')) {
+                localStorage.removeItem(NOTIF_CACHE_KEY);
+                renderNotifs();
+            }
+        });
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        let startY = 0, currentY = 0, isPulling = false;
+        const pullIndicator = document.getElementById('pull-indicator');
+
+        window.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) { startY = e.touches[0].pageY; isPulling = true; }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+            currentY = e.touches[0].pageY;
+            const diff = currentY - startY;
+            if (diff > 0 && window.scrollY === 0) {
+                const pullDistance = Math.min(diff * 0.4, 80);
+                pullIndicator.style.transform = `translateY(${pullDistance}px)`;
+                pullIndicator.querySelector('.pull-spinner').style.opacity = diff > 150 ? '1' : '0.5';
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (!isPulling) return;
+            const diff = currentY - startY;
+            isPulling = false;
+            if (diff > 150 && window.scrollY === 0) {
+                if (navigator.vibrate) navigator.vibrate(30);
+                pullIndicator.style.transform = `translateY(100px)`;
+                setTimeout(() => { window.location.reload(); }, 300);
+            } else {
+                pullIndicator.style.transform = `translateY(0)`;
+            }
+            startY = 0; currentY = 0;
+        });
+
+        const htmlObj = document.documentElement;
+        const themeBtn = document.getElementById('theme-toggle');
+
+        if (localStorage.getItem('mobile-theme') === 'light') htmlObj.classList.remove('dark');
+        else htmlObj.classList.add('dark');
+
+        themeBtn.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(15);
+            htmlObj.classList.toggle('dark');
+            const isDark = htmlObj.classList.contains('dark');
+            localStorage.setItem('mobile-theme', isDark ? 'dark' : 'light');
+
+            if (window.mobileChartInstance) {
+                const color = isDark ? '#fff' : '#000';
+                const tickColor = isDark ? '#aaa' : '#555';
+                const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+                window.mobileChartInstance.options.plugins.legend.labels.color = color;
+                window.mobileChartInstance.options.scales.x.ticks.color = tickColor;
+                window.mobileChartInstance.options.scales.y.ticks.color = tickColor;
+                window.mobileChartInstance.options.scales.x.grid.color = gridColor;
+                window.mobileChartInstance.options.scales.y.grid.color = gridColor;
+                window.mobileChartInstance.update();
+            }
+        });
+
+        const enableNotifBtn = document.getElementById('enable-notif-btn');
+        enableNotifBtn.addEventListener('click', () => {
+            if (!("Notification" in window)) { alert("Your browser does not support Native Notifications."); return; }
+            if (Notification.permission === "granted") return;
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") alert("Lockscreen Notifications Enabled!");
+            });
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (navigator.vibrate) navigator.vibrate(10);
+            document.querySelector('main').scrollTop = 0;
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw2mh_gwzJRZPxCzo1etWVQFXs2ayML5s",
+            authDomain: "ramikasys.firebaseapp.com",
+            databaseURL: "https://ramikasys-default-rtdb.firebaseio.com",
+            projectId: "ramikasys",
+            storageBucket: "ramikasys.firebasestorage.app",
+            messagingSenderId: "33165892369",
+            appId: "1:33165892369:web:899887016abbee2f5e0ab0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const formatCurrency = (val) => {
+            return parseFloat(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        const uiIncome = document.getElementById('ui-total-income');
+        const uiExpense = document.getElementById('ui-total-expense');
+        const uiBalance = document.getElementById('ui-net-balance');
+        const loader = document.getElementById('loader');
+        const uiLastUpdated = document.getElementById('ui-last-updated');
+        const historyList = document.getElementById('history-tx-list');
+
+        let rawAdminTx = [];
+        const chartMonthFilter = document.getElementById('chart-month-filter');
+        const dashMonthFilter = document.getElementById('dashboard-month-filter');
+        const historyMonthFilter = document.getElementById('history-month-filter');
+
+        const now = new Date();
+        const currentMonthVal = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        if (chartMonthFilter) chartMonthFilter.value = currentMonthVal;
+        if (dashMonthFilter) dashMonthFilter.value = currentMonthVal;
+        if (historyMonthFilter) historyMonthFilter.value = currentMonthVal;
+
+        const updateMonthlySummary = () => {
+            const monthVal = dashMonthFilter ? dashMonthFilter.value : '';
+            let mIncome = 0; let mExpense = 0;
+
+            (rawAdminTx || []).forEach(tx => {
+                if (!tx.date || !tx.amount) return;
+                if (tx.date.startsWith(monthVal)) {
+                    if (tx.type === 'income') mIncome += parseFloat(tx.amount) || 0;
+                    else if (tx.type === 'expense') mExpense += parseFloat(tx.amount) || 0;
+                }
+            });
+
+            if (uiIncome) uiIncome.innerText = 'Rs. ' + formatCurrency(mIncome);
+            if (uiExpense) uiExpense.innerText = 'Rs. ' + formatCurrency(mExpense);
+            const mBalEl = document.getElementById('ui-monthly-balance');
+            if (mBalEl) mBalEl.innerText = 'Rs. ' + formatCurrency(mIncome - mExpense);
+        };
+
+        const renderHistoryList = () => {
+            if (!historyList) return;
+            const filterMonth = historyMonthFilter ? historyMonthFilter.value : '';
+            let filtered = rawAdminTx;
+
+            if (filterMonth) {
+                filtered = rawAdminTx.filter(tx => tx.date && tx.date.startsWith(filterMonth));
+            }
+
+            if (filtered.length === 0) {
+                historyList.innerHTML = `<div class="py-8 text-center text-gray-400 text-sm">No transactions found for this month.</div>`;
+                return;
+            }
+
+            historyList.innerHTML = filtered.map(tx => {
+                const isIncome = tx.type === 'income';
+                return `
+                <li class="py-3 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">${tx.description}</p>
+                        <p class="text-xs text-gray-400">${tx.date}</p>
+                    </div>
+                    <span class="text-sm font-bold font-mono ${isIncome ? 'text-[#30D158]' : 'text-[#FF453A]'}">
+                        ${isIncome ? '+' : '-'}Rs. ${formatCurrency(tx.amount)}
+                    </span>
+                </li>`;
+            }).join('');
+        };
+
+        if (dashMonthFilter) dashMonthFilter.addEventListener('change', updateMonthlySummary);
+        if (historyMonthFilter) historyMonthFilter.addEventListener('change', renderHistoryList);
+        if (chartMonthFilter) chartMonthFilter.addEventListener('change', () => renderMobileChart(rawAdminTx));
+
+        window.mobileChartInstance = null;
+        const renderMobileChart = (txArray) => {
+            const ctx = document.getElementById('incomeExpenseChart');
+            if (!ctx) return;
+
+            const map = {};
+            const filterMonth = chartMonthFilter.value;
+
+            (txArray || []).forEach(tx => {
+                if (!tx.date || !tx.amount) return;
+                if (filterMonth && !tx.date.startsWith(filterMonth)) return;
+
+                const parts = tx.date.split('-');
+                if (parts.length < 3) return;
+                const dayLabel = parts[2];
+
+                if (!map[dayLabel]) map[dayLabel] = { income: 0, expense: 0 };
+                if (tx.type === 'income') map[dayLabel].income += parseFloat(tx.amount) || 0;
+                else if (tx.type === 'expense') map[dayLabel].expense += parseFloat(tx.amount) || 0;
+            });
+
+            const labels = Object.keys(map).sort();
+            const incomeData = labels.map(l => map[l].income);
+            const expenseData = labels.map(l => map[l].expense);
+
+            const data = {
+                labels: labels,
+                datasets: [
+                    { label: 'Income', data: incomeData, borderColor: '#30D158', backgroundColor: 'rgba(48, 209, 88, 0.1)', borderWidth: 3, fill: true, tension: 0.4 },
+                    { label: 'Expense', data: expenseData, borderColor: '#FF453A', backgroundColor: 'rgba(255, 69, 58, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }
+                ]
+            };
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const labelColor = isDark ? '#fff' : '#000';
+            const tickColor = isDark ? '#aaa' : '#555';
+            const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+            if (window.mobileChartInstance) {
+                window.mobileChartInstance.data = data;
+                window.mobileChartInstance.options.plugins.legend.labels.color = labelColor;
+                window.mobileChartInstance.options.scales.x.ticks.color = tickColor;
+                window.mobileChartInstance.options.scales.y.ticks.color = tickColor;
+                window.mobileChartInstance.update();
+            } else {
+                window.mobileChartInstance = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: labelColor, font: { family: 'Inter', size: 12 } } } },
+                        scales: {
+                            x: { ticks: { color: tickColor }, grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            }
+        };
+
+        const syncRef = ref(db, 'fin_tracker');
+        const CACHE_KEY = 'fintrack_mobile_cache';
+
+        const applyDataToUI = (data) => {
+            if (!data) return;
+            if (uiBalance) uiBalance.innerText = formatCurrency(data.netBalance || 0);
+
+            rawAdminTx = data.recentTransactions || [];
+            updateMonthlySummary();
+            renderHistoryList();
+            renderMobileChart(rawAdminTx);
+
+            if (data.lastUpdated) {
+                const time = new Date(data.lastUpdated);
+                uiLastUpdated.innerText = "Sync: " + time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        };
+
+        // Cache pre-load
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) applyDataToUI(JSON.parse(cached));
+
+        onValue(syncRef, (snapshot) => {
+            if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); }
+            const data = snapshot.val();
+            if (data) {
+                if (localStorage.getItem(CACHE_KEY) && rawAdminTx.length > 0 && data.recentTransactions?.length > 0) {
+                    const newTx = data.recentTransactions[0];
+                    if (newTx && newTx.id !== rawAdminTx[0]?.id) {
+                        const isIncome = newTx.type === 'income';
+                        const title = isIncome ? '💳 CREDIT ALERT' : '💳 DEBIT ALERT';
+                        const bodyText = `LKR ${formatCurrency(newTx.amount)} was ${isIncome ? 'credited' : 'debited'}.\nAvl Bal: LKR ${formatCurrency(data.netBalance)}\nRef: ${newTx.description || 'System Update'}`;
+                        window.sendMobileNotification(title, bodyText);
+                    }
+                }
+                applyDataToUI(data);
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                uiLastUpdated.innerText = "Sync: Live";
+            }
+        });
+    </script>
+</body>
+
+</html>
